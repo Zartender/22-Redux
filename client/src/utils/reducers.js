@@ -1,65 +1,106 @@
-import { ADD_CAR, START_CAR, STOP_CAR } from '../utils/actions';
+import {
+  UPDATE_PRODUCTS,
+  UPDATE_CATEGORIES,
+  UPDATE_CURRENT_CATEGORY,
+  ADD_TO_CART,
+  ADD_MULTIPLE_TO_CART,
+  REMOVE_FROM_CART,
+  UPDATE_CART_QUANTITY,
+  CLEAR_CART,
+  TOGGLE_CART
+} from './actions';
 
-const randomNum = () => Math.floor(Math.random() * 20000);
 
-// Notice we moved the initial state object from our CarComponent to the reducer itself
-const initalState = {
-  cars: [
-    {
-      id: randomNum(),
-      make: 'Honda',
-      model: 'Civic',
-      year: '2008',
-      isRunning: false,
-    },
-    {
-      id: randomNum(),
-      make: 'Tesla',
-      model: 'Y',
-      year: '2021',
-      isRunning: false,
-    },
-  ]
+const defaultState = {
+  products: [],
+  cart: [],
+  cartOpen: false,
+  categories: [],
+  currentCategory: '',
 }
 
-// Here we pass a default value of initalState if none is provided
-export default function reducer(state = initalState, action) {
+
+
+const reducer = (state=defaultState, action) => {
   switch (action.type) {
-    case ADD_CAR: {
-      const newCarId = state.cars[state.cars.length - 1].id + 1;
-      const newCar = { ...action.payload, id: newCarId };
+      //if action type value is the value of 'UPDATE_PRODUCTS', return a new state object with an updated products array 
+      case UPDATE_PRODUCTS:
+          return {
+              ...state,
+              products: [...action.products]
+          };
 
-      return {
-        ...state,
-        cars: [...state.cars, newCar],
-      };
-    }
-    case START_CAR: {
-      const carIndex = state.cars.findIndex((car) => car.id === action.payload);
-      const updatedCar = { ...state.cars[carIndex], isRunning: true };
+          //if action type value is value of 'UPDATE_CATEGORIES', return a new state object with an updated categories array
+      case UPDATE_CATEGORIES:
+          return {
+              ...state,
+              categories: [...action.categories]
+          };
+      
+      case UPDATE_CURRENT_CATEGORY: 
+          return {
+              ...state,
+              currentCategory: action.currentCategory
+          };
 
-      const carsCopy = [...state.cars];
-      carsCopy[carIndex] = updatedCar;
+      case ADD_TO_CART: 
+          return {
+              ...state,
+              cartOpen: true,
+              cart: [...state.cart, action.product]
+          };
 
-      return {
-        ...state,
-        cars: carsCopy,
-      };
-    }
-    case STOP_CAR: {
-      const carIndex = state.cars.findIndex((car) => car.id === action.payload);
-      const updatedCar = { ...state.cars[carIndex], isRunning: false };
+      case ADD_MULTIPLE_TO_CART:
+          return {
+              ...state,
+              cart: [...state.cart, ...action.products]
+          };
 
-      const carsCopy = [...state.cars];
-      carsCopy[carIndex] = updatedCar;
+      case REMOVE_FROM_CART:
+          let newState = state.cart.filter(product => {
+              return product._id !== action._id;
+          });
+          
+          return {
+              ...state,
+              cartOpen: newState.length > 0,
+              cart: newState
+          };
 
-      return {
-        ...state,
-        cars: carsCopy,
-      };
-    }
-    default: {
-      return state;
-    }
+      case UPDATE_CART_QUANTITY: 
+          return {
+              ...state,
+              cartOpen: true,
+              cart: state.cart.map(product => {
+                  if(action._id === product._id) {
+                      product.purchaseQuantity = action.purchaseQuantity;
+                  }
+
+                  return product;
+              })
+          };
+
+      case CLEAR_CART:
+          return {
+              ...state,
+              cartOpen: false,
+              cart: []
+          };
+
+
+      case TOGGLE_CART:
+          return {
+              ...state,
+              cartOpen: !state.cartOpen
+          }
+
+      
+
+          //if it's none of these actions, do not update the state at all and keep things the same
+      default:
+          return state;
   }
 }
+
+
+export default reducer;
